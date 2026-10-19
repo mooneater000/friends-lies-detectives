@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0D0F12">
+<title>Friends, Lies &amp; Detectives</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Special+Elite&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-tab="case">
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="conn" class="conn hidden" role="alert">Connection problem. Retrying&hellip; The game state on the server is unchanged.</div>
+
+<!-- LOADING -->
+<main id="screen-loading" class="screen center">
+  <h1 class="title">Friends, Lies &amp; Detectives</h1>
+  <p class="muted">Connecting&hellip;</p>
+</main>
+
+<!-- HOME -->
+<main id="screen-home" class="screen hidden">
+  <div class="wrap narrow">
+    <p class="kicker">A game of mystery and deception</p>
+    <h1 class="title big">Friends, Lies<br>&amp; Detectives</h1>
+    <p class="tagline">Everyone has a story. Someone is lying.</p>
+
+    <div class="card">
+      <label for="nick">Your name</label>
+      <input id="nick" maxlength="20" autocomplete="off" placeholder="Choose a nickname">
+      <label>Your avatar</label>
+      <div id="avatar-row" class="avatar-row" role="radiogroup" aria-label="Avatar"></div>
+      <div id="home-error" class="error hidden"></div>
+
+      <div class="row stack-sm">
+        <button class="btn gold" id="btn-show-create">CREATE A GAME</button>
+        <button class="btn" id="btn-show-join">JOIN A GAME</button>
+      </div>
+
+      <div id="panel-create" class="subpanel hidden">
+        <label for="create-case">Mystery</label>
+        <select id="create-case"></select>
+        <label for="create-duration">Investigation time</label>
+        <select id="create-duration">
+          <option value="30">30 minutes</option>
+          <option value="35" selected>35 minutes</option>
+          <option value="40">40 minutes</option>
+          <option value="45">45 minutes</option>
+        </select>
+        <button class="btn gold block" id="btn-create">Create room</button>
+      </div>
+
+      <div id="panel-join" class="subpanel hidden">
+        <label for="join-code">Room code</label>
+        <input id="join-code" maxlength="9" autocomplete="off" autocapitalize="characters" placeholder="CASE-1234">
+        <button class="btn gold block" id="btn-join">Join room</button>
+      </div>
+    </div>
+
+    <p class="muted small center">This is a fictional game. All people, places and accusations are invented.</p>
+  </div>
+</main>
+
+<!-- LOBBY -->
+<main id="screen-lobby" class="screen hidden">
+  <div class="wrap narrow">
+    <p class="kicker">Lobby</p>
+    <div class="codebox">
+      <div>
+        <div class="muted small">Room code</div>
+        <div class="code" id="lobby-code">CASE-0000</div>
+      </div>
+      <button class="btn small" id="btn-copy">Copy invite link</button>
+    </div>
+
+    <div class="card">
+      <h2 class="title" id="lobby-case"></h2>
+      <p class="muted" id="lobby-desc"></p>
+      <p class="small" id="lobby-slots"></p>
+    </div>
+
+    <div class="card">
+      <h3>Players</h3>
+      <ul id="lobby-players" class="plist"></ul>
+    </div>
+
+    <div class="card hidden" id="host-settings">
+      <h3>Host settings</h3>
+      <label for="set-duration">Investigation time</label>
+      <select id="set-duration">
+        <option value="30">30 minutes</option>
+        <option value="35">35 minutes</option>
+        <option value="40">40 minutes</option>
+        <option value="45">45 minutes</option>
+      </select>
+      <label for="set-qlimit">Official detective questions</label>
+      <select id="set-qlimit">
+        <option value="8">8</option><option value="10">10</option><option value="12">12</option>
+        <option value="15">15</option><option value="20">20</option>
+      </select>
+      <label class="check"><input type="checkbox" id="set-reread" checked> Players may reopen their character script</label>
+    </div>
+
+    <div id="lobby-info" class="muted small"></div>
+    <div class="row stack-sm">
+      <button class="btn gold block hidden" id="btn-start">START INVESTIGATION</button>
+      <button class="btn block" id="btn-leave-lobby">Leave room</button>
+    </div>
+  </div>
+</main>
+
+<!-- GAME -->
+<main id="screen-game" class="screen hidden">
+  <header class="gamebar">
+    <div class="gb-left">
+      <div class="gb-title" id="game-title"></div>
+      <div class="gb-phase" id="phase-label"></div>
+    </div>
+    <div class="gb-right">
+      <div class="clock" id="clock" aria-label="Time remaining">--:--</div>
+    </div>
+  </header>
+
+  <section id="qbanner" class="qbanner hidden" aria-live="polite"></section>
+
+  <div class="layout">
+    <aside class="panel" id="panel-people" aria-label="People">
+      <div class="card">
+        <h3>Case file</h3>
+        <p class="small" id="case-summary"></p>
+        <p class="small muted" id="q-counter"></p>
+      </div>
+      <div class="card">
+        <h3>Characters</h3>
+        <ul id="people" class="plist"></ul>
+      </div>
+      <button class="btn small block" id="btn-leave-game">Leave room</button>
+    </aside>
+
+    <section class="panel" id="panel-case" aria-label="Case">
+      <div class="card" id="role-card"></div>
+
+      <div class="card" id="brief-card">
+        <h3>Public briefing</h3>
+        <div id="brief"></div>
+      </div>
+
+      <div class="card hidden" id="det-controls">
+        <h3>Detective&rsquo;s desk</h3>
+        <div class="muted small" id="det-left"></div>
+        <label for="q-target">Ask</label>
+        <select id="q-target"></select>
+        <label for="q-body">Official question</label>
+        <textarea id="q-body" maxlength="300" rows="3" placeholder="Type your official question&hellip;"></textarea>
+        <div class="row stack-sm">
+          <button class="btn gold" id="btn-ask">Submit question</button>
+          <button class="btn danger" data-act="accuse">Final accusation</button>
+        </div>
+        <div class="muted small" id="det-hint"></div>
+      </div>
+
+      <div class="card">
+        <h3>Evidence</h3>
+        <div id="evidence" class="ev-grid"></div>
+      </div>
+    </section>
+
+    <aside class="panel" id="panel-chat" aria-label="Chat and questions">
+      <div class="subtabs" role="tablist">
+        <button class="subtab active" data-act="logtab" data-v="chat" role="tab">Public chat</button>
+        <button class="subtab" data-act="logtab" data-v="log" role="tab">Question log</button>
+      </div>
+      <div id="chat-pane">
+        <div id="chat-list" class="chat-list" aria-live="polite"></div>
+        <form id="chat-form" class="chat-form" autocomplete="off">
+          <input id="chat-input" maxlength="300" placeholder="Say something to the room&hellip;" aria-label="Chat message">
+          <button class="btn gold" type="submit">Send</button>
+        </form>
+      </div>
+      <div id="log-pane" class="hidden">
+        <div id="qlog" class="qlog"></div>
+      </div>
+    </aside>
+  </div>
+
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <button data-act="tab" data-v="case" class="active">Case</button>
+    <button data-act="tab" data-v="chat">Chat<span class="dot-new hidden" id="chat-dot"></span></button>
+    <button data-act="tab" data-v="people">People</button>
+  </nav>
+</main>
+
+<!-- RESULTS -->
+<main id="screen-result" class="screen hidden">
+  <div class="wrap">
+    <p class="kicker">Case closed</p>
+    <div id="result-banner" class="banner"></div>
+    <div class="card"><h3>What really happened</h3><p id="result-explain"></p></div>
+    <div class="card hidden" id="result-accusation"></div>
+    <div class="card"><h3>Everyone&rsquo;s secrets</h3><div id="result-chars"></div></div>
+    <div class="card"><h3>All evidence</h3><div id="result-evidence"></div></div>
+    <div class="row stack-sm">
+      <button class="btn gold hidden" id="btn-rematch">PLAY AGAIN (new roles)</button>
+      <button class="btn" id="btn-leave-result">Leave room</button>
+    </div>
+    <p class="muted small center" id="rematch-note"></p>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div id="modal" class="modal hidden" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <button class="x" id="modal-x" aria-label="Close">&times;</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="cases.js"></script>
+<script src="api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
